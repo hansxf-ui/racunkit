@@ -38,3 +38,24 @@ const noPrice = generateCaption({ ...sample, price: 0 });
 assert.ok(!noPrice.caption.includes('Rp0'), 'must not show Rp0');
 assert.ok(noPrice.caption.includes('cek harga di link'), 'must say cek harga di link');
 console.log('racun.test.js caption PASS');
+
+// Shot-list generator
+const { generateShotList } = require('../js/racun-templates.js');
+const shots = generateShotList(sample);
+assert.strictEqual(shots.length, 6, 'must return exactly 6 shots');
+assert.strictEqual(shots[0].kind, 'HOOK', 'starts with HOOK');
+assert.strictEqual(shots[5].kind, 'CTA', 'ends with CTA');
+shots.forEach((s, i) => {
+    assert.ok(s.at && s.kind && s.shot && s.tip, 'shot ' + i + ' has all fields');
+    assert.ok(!/undefined/.test(s.shot + ' ' + s.tip + ' ' + s.kind), 'shot ' + i + ' leaks undefined');
+});
+assert.ok(shots[0].shot.toLowerCase().includes('tumbler'), 'uses product name');
+assert.ok(shots[2].shot.includes('dingin 24 jam'), 'demo uses real kelebihan 1');
+assert.ok(shots[3].shot.includes('anti tumpah'), 'demo uses real kelebihan 2');
+
+// empty product still safe
+const emptyShots = generateShotList({ name: '', price: 0, kelebihan: [] });
+assert.strictEqual(emptyShots.length, 6);
+assert.ok(!/undefined/.test(JSON.stringify(emptyShots)), 'empty product safe');
+
+console.log('racun.test.js shotlist PASS');
