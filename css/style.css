@@ -177,3 +177,8 @@ footer.foot { text-align: center; color: var(--muted); font-size: 0.8rem; margin
 
 /* Admin: label sumber produk */
 .src { font-size: 0.72rem; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 1px 8px; white-space: nowrap; }
+
+/* Racun Machine: shot-list */
+.shot { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; }
+.shot p { margin: 4px 0; }
+.shot .tip { font-size: 0.85rem; color: var(--muted); }
