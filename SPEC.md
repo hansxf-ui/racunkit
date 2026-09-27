@@ -16,6 +16,7 @@ Output (satu klik, semua bisa di-copy):
 - 5 hook pembuka gaya "racun Shopee"
 - Script video 30 detik (hook → demo → CTA)
 - Caption + hashtag siap posting
+- Shot-list rekam 30 detik (6 adegan: HOOK → UNBOXING → DEMO 1 → DEMO 2 → DETAIL → CTA, pakai kelebihan asli produk + tips tiap adegan)
 - Varian nada: heboh / kalem / lucu
 
 Cara kerja: template + slot-filling murni di JS (tanpa API/AI berbayar).
