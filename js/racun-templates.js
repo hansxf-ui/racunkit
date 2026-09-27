@@ -97,8 +97,7 @@ const HASHTAG_POOL = {
     'Buku/Hobi': ['#hobi', '#racunhobi', '#bookhaul']
 };
 
-const generateCaption = (p) => {
-    const v = vals(p);
+const generateCaption = (p) => {    const v = vals(p);
     if (!p.price) v.harga = 'cek harga di link';
     let idx = Number(sget('racunkit_caption_idx_v1', 0)) || 0;
     const caption = fillSlots(CAPTION_TEMPLATES[idx % CAPTION_TEMPLATES.length], v);
@@ -107,4 +106,19 @@ const generateCaption = (p) => {
     return { caption, hashtags: tags };
 };
 
-if (typeof module !== 'undefined') module.exports = { generateHooks, generateScript, generateCaption };
+// Shot-list: adegan per adegan buat direkam (30 detik), pakai kelebihan asli produk.
+const generateShotList = (p) => {
+    const v = vals(p);
+    const f1 = v.kelebihan[0];
+    const f2 = v.kelebihan[1] || v.kelebihan[0];
+    return [
+        { at: '0–3 dtk', kind: 'HOOK', shot: `Close-up ${v.nama} / ekspresi kaget, teks hook besar penuhin layar`, tip: '3 detik pertama nentuin orang lanjut nonton atau scroll' },
+        { at: '3–8 dtk', kind: 'UNBOXING', shot: `Buka kemasan ${v.nama} pelan-pelan, tunjukin isi paketnya satu-satu`, tip: 'Suara buka kemasan itu ASMR gratis' },
+        { at: '8–15 dtk', kind: 'DEMO 1', shot: `Tunjukin ${v.nama} lagi dipakai beneran — fokus ke: ${f1}`, tip: 'Tangan stabil, cahaya dari depan, jangan backlight' },
+        { at: '15–22 dtk', kind: 'DEMO 2', shot: `Before-after / perbandingan soal: ${f2}`, tip: 'Split sebelum-sesudah selalu rame yang komen' },
+        { at: '22–26 dtk', kind: 'DETAIL', shot: `Close-up tekstur & detail ${v.nama}, putar pelan 360°`, tip: 'Pakai mode makro HP kalau ada' },
+        { at: '26–30 dtk', kind: 'CTA', shot: `${v.nama} di tangan + teks "cek link di bio / keranjang oren" ${v.harga}`, tip: 'Tunjuk ke arah tombol checkout, senyum dikit' },
+    ];
+};
+
+if (typeof module !== 'undefined') module.exports = { generateHooks, generateScript, generateCaption, generateShotList };
