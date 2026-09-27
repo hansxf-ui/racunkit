@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Komisi Radar — RacunKit</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="page">
+    <a class="back" href="index.html">← Beranda</a>
+    <header class="top">
+        <h1>📡 Komisi Radar</h1>
+        <p>Peta komisi Shopee Affiliate 2026 + kalkulator cuan.</p>
+    </header>
+
+    <p class="disclaimer">Data per Sep 2026 — konfirmasi angka final di dashboard Shopee Affiliate.</p>
+
+    <div class="card">
+        <h3 style="margin-bottom:8px">💰 Tabel komisi per kategori</h3>
+        <table class="rate" id="rate-table"></table>
+        <div id="scheme-notes" style="margin-top:10px; font-size:0.85rem; color:var(--muted)"></div>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-bottom:8px">🏆 Kategori paling cuan <span style="font-weight:normal; font-size:0.8rem; color:var(--muted)">(skema Shopee Video)</span></h3>
+        <div id="ranking"></div>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-bottom:12px">🧮 Kalkulator komisi</h3>
+        <label class="f">Harga produk (Rp)
+            <input class="input" id="k-harga" inputmode="numeric" placeholder="cth: 150.000">
+        </label>
+        <label class="f">Kategori
+            <select class="input" id="k-kat"></select>
+        </label>
+        <label class="f">Skema
+            <select class="input" id="k-skema"></select>
+        </label>
+        <div class="btn-row"><button class="btn" id="k-hitung" style="flex:1">Hitung</button></div>
+        <div class="result" id="k-hasil"></div>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-bottom:12px">🎯 Kalkulator target</h3>
+        <label class="f">Target komisi (Rp)
+            <input class="input" id="t-target" inputmode="numeric" placeholder="cth: 1.000.000">
+        </label>
+        <label class="f">Harga produk (Rp)
+            <input class="input" id="t-harga" inputmode="numeric" placeholder="cth: 50.000">
+        </label>
+        <label class="f">Kategori
+            <select class="input" id="t-kat"></select>
+        </label>
+        <label class="f">Skema
+            <select class="input" id="t-skema"></select>
+        </label>
+        <div class="btn-row"><button class="btn" id="t-hitung" style="flex:1">Hitung</button></div>
+        <div class="result" id="t-hasil"></div>
+    </div>
+</div>
+
+<script src="js/common.js"></script>
+<script src="js/komisi-data.js"></script>
+<script src="js/komisi-calc.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const fmtPct = (n) => String(n).replace('.', ',') + '%';
+const SCHEMES = Object.keys(COMMISSIONS);
+const CATS = Object.keys(COMMISSIONS.video.categories);
+
+// (a) rate table
+$('rate-table').innerHTML =
+    '<tr><th>Kategori</th>' + SCHEMES.map(s => `<th>${esc(COMMISSIONS[s].label)}</th>`).join('') + '</tr>' +
+    CATS.map(c => `<tr><td>${esc(c)}</td>` +
+        SCHEMES.map(s => `<td>${fmtPct(COMMISSIONS[s].categories[c])}</td>`).join('') + '</tr>').join('');
+$('scheme-notes').innerHTML = SCHEMES.map(s => {
+    const sc = COMMISSIONS[s];
+    const cap = sc.cap > 0 ? `maks ${formatRupiah(sc.cap)}/pesanan` : 'tanpa cap';
+    return `<div>• <b>${esc(sc.label)}</b> — ${cap}. ${esc(sc.note)}</div>`;
+}).join('');
+
+// (b) ranking by video rate desc
+$('ranking').innerHTML = Object.entries(COMMISSIONS.video.categories)
+    .sort((a, b) => b[1] - a[1])
+    .map(([c, r], i) => `<div class="rank-row"><span class="rank-num">${i + 1}</span> ${esc(c)} <b>${fmtPct(r)}</b></div>`)
+    .join('');
+
+// selects
+const fillSel = (id, opts) => { $(id).innerHTML = opts.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join(''); };
+fillSel('k-kat', CATS); fillSel('t-kat', CATS);
+fillSel('k-skema', SCHEMES.map(s => COMMISSIONS[s].label));
+fillSel('t-skema', SCHEMES.map(s => COMMISSIONS[s].label));
+const schemeKey = (label) => SCHEMES.find(s => COMMISSIONS[s].label === label);
+
+// (c) commission calculator
+$('k-hitung').addEventListener('click', () => {
+    const price = parseRupiah($('k-harga').value);
+    if (!price) { toast('Isi harga produk dulu ya'); return; }
+    const r = calcCommission(price, $('k-kat').value, schemeKey($('k-skema').value));
+    $('k-hasil').innerHTML =
+        `<b>${formatRupiah(r.net)}</b> per pcs <span style="color:var(--muted)">(${fmtPct(r.rate)})</span>` +
+        (r.capped ? `<p class="cap-note">Terkena cap — tanpa cap dapatnya ${formatRupiah(r.gross)}.</p>` : '');
+});
+
+// (d) target calculator
+$('t-hitung').addEventListener('click', () => {
+    const target = parseRupiah($('t-target').value);
+    const price = parseRupiah($('t-harga').value);
+    if (!target || !price) { toast('Isi target dan harga produk dulu ya'); return; }
+    const t = calcTarget(target, price, $('t-kat').value, schemeKey($('t-skema').value));
+    $('t-hasil').innerHTML = t.pcs === 0
+        ? 'Komisi per pcs Rp0 — target nggak akan kecapai. Cek harga produknya.'
+        : `Butuh <b>${t.pcs} pcs</b> @ ${formatRupiah(t.perSale)}/pcs buat capai ${formatRupiah(target)}.`;
+});
+</script>
+</body>
+</html>
