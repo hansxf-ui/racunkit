@@ -58,12 +58,17 @@
     <div class="card">
         <h3 style="margin-bottom:8px">📦 Produk (<span id="count">0</span>)</h3>
         <div id="list"></div>
+        <div class="btn-row" style="margin-top:12px">
+            <button class="btn" id="a-export" style="flex:1">📄 Export produk.js</button>
+        </div>
+        <p style="font-size:0.8rem; color:var(--muted); margin-top:8px">🌐 permanen = terlihat semua pengunjung · 📱 lokal = cuma di HP ini.<br>Tap Export lalu kirim file-nya ke Vesper biar dipush permanen.</p>
     </div>
 
     <footer class="foot"><a href="toko.html">Lihat toko</a></footer>
 </div>
 
 <script src="js/common.js"></script>
+<script src="js/produk.js"></script>
 <script src="js/toko-store.js"></script>
 <script src="js/toko-render.js"></script>
 <script>
@@ -73,11 +78,12 @@ const esc = (s) => String(s == null ? '' : s)
 
 const renderList = () => {
     const products = getProducts();
+    const localIds = new Set(getLocalProducts().map(p => p.id));
     $('count').textContent = products.length;
     $('list').innerHTML = products.length ? products.map(p => `
         <div class="admin-row" data-id="${esc(p.id)}">
             <div class="grow">
-                <b>${esc(p.name)}</b><br>
+                <b>${esc(p.name)}</b> <span class="src">${localIds.has(p.id) ? '📱 lokal' : '🌐 permanen'}</span><br>
                 <span>${formatRupiah(p.price)} · ${esc(p.category)}</span><br>
                 <span class="clicks">${getClicks(p.id)} klik</span>
             </div>
@@ -116,6 +122,18 @@ $('a-save').addEventListener('click', () => {
 });
 
 $('a-cancel').addEventListener('click', resetForm);
+
+$('a-export').addEventListener('click', () => {
+    if (!getProducts().length) { toast('Belum ada produk buat diexport'); return; }
+    try {
+        const blob = new Blob([exportProdukJs()], { type: 'text/javascript' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'produk.js';
+        document.body.appendChild(a); a.click(); a.remove();
+        toast('produk.js terunduh — kirim file-nya ke Vesper biar dipush');
+    } catch (e) { toast('Gagal mengunduh file'); }
+});
 
 $('list').addEventListener('click', (e) => {
     const btn = e.target.closest('[data-act]');
