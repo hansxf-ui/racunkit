@@ -174,3 +174,6 @@ footer.foot { text-align: center; color: var(--muted); font-size: 0.8rem; margin
 
 /* Toko placeholder image sizing (matches .prod-card img) */
 .prod-card svg.ph { width: 100%; aspect-ratio: 1; display: block; }
+
+/* Admin: label sumber produk */
+.src { font-size: 0.72rem; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 1px 8px; white-space: nowrap; }
