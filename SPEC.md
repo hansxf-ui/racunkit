@@ -26,8 +26,11 @@ Template ditulis natural, gaya bahasa Indonesia sosmed.
   badge (mis. "Termurah", "Best Seller")
 - Halaman etalase mobile-friendly, tiap kartu → link affiliate
 - Link halaman bisa taro di bio sosmed
-- Hitung klik per produk (localStorage) → keliatan produk mana yang dilirik
+- Hitung klik per produk (localStorage, per device) → keliatan produk mana yang dilirik
 - Kelola (tambah/edit/hapus) lewat halaman admin sederhana
+- Data permanen & publik: `js/produk.js` di repo (terlihat semua pengunjung).
+  Perubahan di admin tersimpan lokal dulu (label 📱 lokal vs 🌐 permanen);
+  tap "Export produk.js" di admin → kirim file ke Vesper → dipush ke repo.
 
 ### M3 — Komisi Radar (peta komisi + kalkulator)
 - Tabel komisi per kategori Shopee Affiliate 2026 (data riset, ada tanggal
