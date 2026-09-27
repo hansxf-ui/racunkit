@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kelola Toko — RacunKit</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="page">
+    <a class="back" href="index.html">← Beranda</a>
+    <header class="top">
+        <h1>🛠️ Kelola Toko</h1>
+        <p>Tambah, ubah, atau hapus produk di toko rekomendasi kamu.</p>
+    </header>
+
+    <div class="card">
+        <h3 id="form-title" style="margin-bottom:12px">➕ Tambah produk</h3>
+        <input type="hidden" id="a-id">
+        <label class="f">Nama produk
+            <input class="input" id="a-nama" placeholder="cth: Tumbler Viral 1L">
+        </label>
+        <label class="f">Harga (Rp)
+            <input class="input" id="a-harga" type="number" inputmode="numeric" placeholder="cth: 45000">
+        </label>
+        <label class="f">Link affiliate Shopee
+            <input class="input" id="a-link" placeholder="cth: https://s.shopee.co.id/xxxx">
+        </label>
+        <label class="f">URL gambar (opsional)
+            <input class="input" id="a-img" placeholder="https://...">
+        </label>
+        <label class="f">Kategori
+            <select class="input" id="a-kat">
+                <option>Fashion</option>
+                <option>Beauty</option>
+                <option>Elektronik</option>
+                <option selected>Rumah</option>
+                <option>Makanan</option>
+                <option>Buku/Hobi</option>
+                <option>Lainnya</option>
+            </select>
+        </label>
+        <label class="f">Badge (opsional)
+            <select class="input" id="a-badge">
+                <option value="">Tanpa badge</option>
+                <option>Termurah</option>
+                <option>Viral</option>
+                <option>Best Seller</option>
+                <option>Diskon</option>
+            </select>
+        </label>
+        <div class="btn-row">
+            <button class="btn" id="a-save" style="flex:1">💾 Simpan</button>
+            <button class="btn btn-secondary" id="a-cancel" style="display:none">Batal</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-bottom:8px">📦 Produk (<span id="count">0</span>)</h3>
+        <div id="list"></div>
+    </div>
+
+    <footer class="foot"><a href="toko.html">Lihat toko</a></footer>
+</div>
+
+<script src="js/common.js"></script>
+<script src="js/toko-store.js"></script>
+<script src="js/toko-render.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+const renderList = () => {
+    const products = getProducts();
+    $('count').textContent = products.length;
+    $('list').innerHTML = products.length ? products.map(p => `
+        <div class="admin-row" data-id="${esc(p.id)}">
+            <div class="grow">
+                <b>${esc(p.name)}</b><br>
+                <span>${formatRupiah(p.price)} · ${esc(p.category)}</span><br>
+                <span class="clicks">${getClicks(p.id)} klik</span>
+            </div>
+            <button class="btn btn-secondary" data-act="edit">Ubah</button>
+            <button class="btn btn-secondary" data-act="del">Hapus</button>
+        </div>`).join('')
+        : '<p class="empty">Belum ada produk. Tambah di form atas.</p>';
+};
+
+const resetForm = () => {
+    $('a-id').value = '';
+    $('a-nama').value = ''; $('a-harga').value = ''; $('a-link').value = ''; $('a-img').value = '';
+    $('a-kat').value = 'Rumah'; $('a-badge').value = '';
+    $('form-title').textContent = '➕ Tambah produk';
+    $('a-save').textContent = '💾 Simpan';
+    $('a-cancel').style.display = 'none';
+};
+
+$('a-save').addEventListener('click', () => {
+    const name = $('a-nama').value.trim();
+    if (!name) { toast('Isi nama produk dulu ya'); return; }
+    const link = $('a-link').value.trim();
+    if (!link) { toast('Link affiliate-nya jangan lupa diisi'); return; }
+    saveProduct({
+        id: $('a-id').value || undefined,
+        name,
+        price: Number($('a-harga').value) || 0,
+        link,
+        img: $('a-img').value.trim(),
+        category: $('a-kat').value,
+        badge: $('a-badge').value,
+    });
+    toast('Produk tersimpan!');
+    resetForm();
+    renderList();
+});
+
+$('a-cancel').addEventListener('click', resetForm);
+
+$('list').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-act]');
+    if (!btn) return;
+    const row = btn.closest('.admin-row');
+    const id = row.dataset.id;
+    if (btn.dataset.act === 'del') {
+        if (!confirm('Hapus produk ini dari toko?')) return;
+        deleteProduct(id);
+        toast('Produk dihapus');
+        renderList();
+    } else {
+        const p = getProducts().find(x => x.id === id);
+        if (!p) return;
+        $('a-id').value = p.id;
+        $('a-nama').value = p.name; $('a-harga').value = p.price || '';
+        $('a-link').value = p.link; $('a-img').value = p.img || '';
+        $('a-kat').value = p.category || 'Rumah'; $('a-badge').value = p.badge || '';
+        $('form-title').textContent = '✏️ Ubah produk';
+        $('a-save').textContent = '💾 Update';
+        $('a-cancel').style.display = '';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+});
+
+renderList();
+</script>
+</body>
+</html>
