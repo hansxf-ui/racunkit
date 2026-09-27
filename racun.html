@@ -61,6 +61,10 @@
             <h3>📝 Caption + Hashtag</h3>
             <div id="out-caption"></div>
         </div>
+        <div class="out-block">
+            <h3>🎬 Shot-list rekam (30 dtk)</h3>
+            <div id="out-shots"></div>
+        </div>
         <button class="btn" id="btn-regen" style="margin-top:4px">🔄 Generate Lagi</button>
     </div>
 </div>
@@ -87,7 +91,11 @@ const generate = () => {
     const hooks = generateHooks(p);
     const script = generateScript(p, tone);
     const { caption, hashtags } = generateCaption(p);
-    lastOut = { hooks, script, caption, hashtags };
+    const shotlist = generateShotList(p);
+    const pname = p.name.trim();
+    const shotlistText = `🎬 SHOT-LIST REKAM — ${pname}\n` +
+        shotlist.map((s, i) => `${i + 1}. [${s.at}] ${s.kind}\n   ${s.shot}\n   💡 ${s.tip}`).join('\n');
+    lastOut = { hooks, script, caption, hashtags, shotlistText };
 
     $('out-hooks').innerHTML = hooks.map((h, i) =>
         `<div class="out-item"><p>${esc(h)}</p><button class="copy" data-k="hooks" data-i="${i}">Salin</button></div>`).join('');
@@ -98,6 +106,9 @@ const generate = () => {
         `<div class="hash-tags">${hashtags.map(h => `<span>${esc(h)}</span>`).join('')}</div>` +
         `<div class="btn-row"><button class="btn btn-secondary" data-k="caption">Salin caption</button>` +
         `<button class="btn btn-secondary" data-k="hashtags">Salin hashtag</button></div>`;
+    $('out-shots').innerHTML = shotlist.map((s, i) =>
+        `<div class="shot"><b>${i + 1}. [${esc(s.at)}] ${esc(s.kind)}</b><p>${esc(s.shot)}</p><p class="tip">💡 ${esc(s.tip)}</p></div>`).join('') +
+        `<div class="btn-row"><button class="btn btn-secondary" data-k="shotlist">Salin shot-list</button></div>`;
     $('hasil').style.display = 'block';
     $('hasil').scrollIntoView({ behavior: 'smooth' });
 };
@@ -107,6 +118,7 @@ document.addEventListener('click', (e) => {
     if (!b || !lastOut) return;
     const k = b.dataset.k;
     const text = k === 'hashtags' ? lastOut.hashtags.join(' ')
+        : k === 'shotlist' ? lastOut.shotlistText
         : (b.dataset.i !== undefined ? lastOut[k][+b.dataset.i] : lastOut[k]);
     copyText(text).then(() => toast('Disalin!'));
 });
