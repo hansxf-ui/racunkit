@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Racun Machine — RacunKit</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="page">
+    <a class="back" href="index.html">← Beranda</a>
+    <header class="top">
+        <h1>🧪 Racun Machine</h1>
+        <p>Isi info produk, jadi paket konten siap posting.</p>
+    </header>
+
+    <div class="card">
+        <label class="f">Nama produk
+            <input class="input" id="f-nama" placeholder="cth: Tumbler Viral 1L">
+        </label>
+        <label class="f">Harga (Rp)
+            <input class="input" id="f-harga" type="number" inputmode="numeric" placeholder="cth: 45000">
+        </label>
+        <label class="f">Kategori
+            <select class="input" id="f-kat">
+                <option>Fashion</option>
+                <option>Beauty</option>
+                <option>Elektronik</option>
+                <option selected>Rumah</option>
+                <option>Makanan</option>
+                <option>Buku/Hobi</option>
+            </select>
+        </label>
+        <label class="f">Kelebihan (satu per baris)
+            <small>cth: dingin 24 jam, anti tumpah</small>
+            <textarea class="input" id="f-lebih" placeholder="dingin 24 jam&#10;anti tumpah"></textarea>
+        </label>
+        <label class="f">Target pembeli (opsional)
+            <input class="input" id="f-audiens" placeholder="cth: anak kos">
+        </label>
+        <label class="f">Nada script
+            <div class="radio-row">
+                <label><input type="radio" name="nada" value="heboh" checked><span>🔥 Heboh</span></label>
+                <label><input type="radio" name="nada" value="kalem"><span>😌 Kalem</span></label>
+                <label><input type="radio" name="nada" value="lucu"><span>😂 Lucu</span></label>
+            </div>
+        </label>
+        <button class="btn" id="btn-gen">✨ Generate Konten</button>
+    </div>
+
+    <div id="hasil" style="display:none">
+        <div class="out-block">
+            <h3>🎣 5 Hook</h3>
+            <div id="out-hooks"></div>
+        </div>
+        <div class="out-block">
+            <h3>🎬 Script 30 detik</h3>
+            <div id="out-script"></div>
+        </div>
+        <div class="out-block">
+            <h3>📝 Caption + Hashtag</h3>
+            <div id="out-caption"></div>
+        </div>
+        <button class="btn" id="btn-regen" style="margin-top:4px">🔄 Generate Lagi</button>
+    </div>
+</div>
+
+<script src="js/common.js"></script>
+<script src="js/racun-templates.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+let lastOut = null;
+
+const readProduct = () => ({
+    name: $('f-nama').value,
+    price: Number($('f-harga').value) || 0,
+    category: $('f-kat').value,
+    kelebihan: $('f-lebih').value.split('\n'),
+    audience: $('f-audiens').value
+});
+
+const generate = () => {
+    const p = readProduct();
+    if (!p.name.trim()) { toast('Isi nama produk dulu ya'); return; }
+    const tone = document.querySelector('input[name="nada"]:checked').value;
+    const hooks = generateHooks(p);
+    const script = generateScript(p, tone);
+    const { caption, hashtags } = generateCaption(p);
+    lastOut = { hooks, script, caption, hashtags };
+
+    $('out-hooks').innerHTML = hooks.map((h, i) =>
+        `<div class="out-item"><p>${esc(h)}</p><button class="copy" data-k="hooks" data-i="${i}">Salin</button></div>`).join('');
+    $('out-script').innerHTML =
+        `<pre class="script">${esc(script)}</pre><div class="btn-row"><button class="btn btn-secondary" data-k="script">Salin script</button></div>`;
+    $('out-caption').innerHTML =
+        `<pre class="script">${esc(caption)}</pre>` +
+        `<div class="hash-tags">${hashtags.map(h => `<span>${esc(h)}</span>`).join('')}</div>` +
+        `<div class="btn-row"><button class="btn btn-secondary" data-k="caption">Salin caption</button>` +
+        `<button class="btn btn-secondary" data-k="hashtags">Salin hashtag</button></div>`;
+    $('hasil').style.display = 'block';
+    $('hasil').scrollIntoView({ behavior: 'smooth' });
+};
+
+document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-k]');
+    if (!b || !lastOut) return;
+    const k = b.dataset.k;
+    const text = k === 'hashtags' ? lastOut.hashtags.join(' ')
+        : (b.dataset.i !== undefined ? lastOut[k][+b.dataset.i] : lastOut[k]);
+    copyText(text).then(() => toast('Disalin!'));
+});
+
+$('btn-gen').addEventListener('click', generate);
+$('btn-regen').addEventListener('click', generate);
+</script>
+</body>
+</html>
