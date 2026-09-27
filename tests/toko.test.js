@@ -63,3 +63,40 @@ const { getClicks: getClicks2 } = require('../js/toko-render.js');
 assert.strictEqual(getClicks2('p1'), 2, 'clicks persist across reload');
 
 console.log('toko.test.js render PASS');
+
+// Repo+local merge: produk repo publik, perubahan lokal menimpa
+const store2 = require('../js/toko-store.js');
+globalThis.PRODUK_TOKO = [
+    { id: 'r1', name: 'Repo A', price: 10000, img: '', link: 'https://s.shopee.co.id/a', category: 'Rumah', badge: '' },
+    { id: 'r2', name: 'Repo B', price: 20000, img: '', link: 'https://s.shopee.co.id/b', category: 'Beauty', badge: '' },
+];
+storeSet('racunkit_products_v1', []);
+storeSet('racunkit_products_deleted_v1', []);
+assert.strictEqual(store2.getProducts().length, 2, 'repo products visible with empty local');
+assert.strictEqual(store2.getLocalProducts().length, 0, 'no local products yet');
+
+const lc = store2.saveProduct({ name: 'Lokal C', price: 30000, img: '', link: 'https://s.shopee.co.id/c', category: 'Fashion' });
+assert.strictEqual(store2.getProducts().length, 3, 'local add appends to repo list');
+assert.strictEqual(store2.getLocalProducts().length, 1, 'local list tracks it');
+
+store2.saveProduct({ id: 'r1', name: 'Repo A Edit', price: 11000, img: '', link: 'https://s.shopee.co.id/a', category: 'Rumah', badge: '' });
+assert.strictEqual(store2.getProducts().find(x => x.id === 'r1').name, 'Repo A Edit', 'local edit overrides repo');
+assert.strictEqual(store2.getProducts().length, 3, 'edit does not duplicate');
+
+store2.deleteProduct('r2');
+assert.ok(!store2.getProducts().some(x => x.id === 'r2'), 'repo product hidden after local delete');
+assert.strictEqual(store2.getProducts().length, 2);
+
+store2.saveProduct({ id: 'r2', name: 'Repo B', price: 20000, img: '', link: 'https://s.shopee.co.id/b', category: 'Beauty', badge: '' });
+assert.ok(store2.getProducts().some(x => x.id === 'r2'), 're-adding unhides repo product');
+
+const exp = store2.exportProdukJs();
+assert.ok(exp.includes('const PRODUK_TOKO'), 'export declares PRODUK_TOKO');
+assert.ok(exp.includes('js/produk.js'), 'export notes destination path');
+assert.ok(exp.includes('Repo A Edit') && exp.includes('Lokal C'), 'export contains merged list');
+assert.doesNotThrow(() => { new Function(exp + ';return PRODUK_TOKO;')(); }, 'export is valid JS');
+
+delete globalThis.PRODUK_TOKO;
+storeSet('racunkit_products_v1', []);
+storeSet('racunkit_products_deleted_v1', []);
+console.log('toko.test.js merge PASS');
